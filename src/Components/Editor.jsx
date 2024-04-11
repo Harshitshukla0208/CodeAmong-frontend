@@ -8,6 +8,7 @@ import logo from '../assets/logo.svg';
 import './css/CodeEditor.css';
 import { executeCode } from '../api';
 import User from '../assets/user.png'
+import Chats from './Chats';
 
 const CodeEditor = () => {
     const editorRef = useRef();
@@ -60,10 +61,8 @@ const CodeEditor = () => {
     const isMobileView = window.innerWidth <= 500;
 
     return (
-        <Box className='main-container'>
-            <Box className='chat-box' w="22%">
-
-            </Box>
+        <Box className='main-container' display="flex">
+            
             <Box minH="100vh" bg="#000" color="gray.500" px={6} py={8} className='main-box' w="78%">
                 <div className='logo-container'>
                     <Link to='/' className='logo'>
@@ -153,6 +152,10 @@ const CodeEditor = () => {
                         <img src={User} className='user-img' />
                     </Box>
                 </Box>
+            </Box>
+
+            <Box className='chat-box' w="22%">
+                <Chats />
             </Box>
         </Box>
     );
