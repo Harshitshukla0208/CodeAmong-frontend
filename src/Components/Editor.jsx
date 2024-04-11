@@ -7,6 +7,7 @@ import { CODE_SNIPPETS } from '../langsupport';
 import logo from '../assets/logo.svg';
 import './css/CodeEditor.css';
 import { executeCode } from '../api';
+import User from '../assets/user.png'
 
 const CodeEditor = () => {
     const editorRef = useRef();
@@ -59,89 +60,99 @@ const CodeEditor = () => {
     const isMobileView = window.innerWidth <= 500;
 
     return (
-        <Box minH="100vh" bg="#000" color="gray.500" px={6} py={8} className='main-box'>
-            <div className='logo-container'>
-                <Link to='/' className='logo'>
-                    <img src={logo} alt="Logo" className="logo-img" />
-                    <h1 className="logo-text">CodeAmong</h1>
-                </Link>
-            </div>
-            <div className='buttons'>
-                <LanguageSelector language={language} onSelect={onSelect} />
+        <Box className='main-container'>
+            <Box className='chat-box' w="22%">
 
-                    <Button className='return-btn' onClick={toggleOutput} colorScheme="blue" style={{ fontSize: '13px',marginLeft: '5px' }}>
-                        Return
+            </Box>
+            <Box minH="100vh" bg="#000" color="gray.500" px={6} py={8} className='main-box' w="78%">
+                <div className='logo-container'>
+                    <Link to='/' className='logo'>
+                        <img src={logo} alt="Logo" className="logo-img" />
+                        <h1 className="logo-text">CodeAmong</h1>
+                    </Link>
+                </div>
+                <div className='buttons'>
+                    <LanguageSelector language={language} onSelect={onSelect} />
+
+                        <Button className='return-btn' onClick={toggleOutput} colorScheme="blue" style={{ fontSize: '13px',marginLeft: '5px' }}>
+                            Return
+                        </Button>
+
+                    <Button className='runcode-btn' variant='outline' colorScheme='green' isLoading={isLoading} onClick={runCode}>
+                        Run Code
                     </Button>
 
-                <Button className='runcode-btn' variant='outline' colorScheme='green' isLoading={isLoading} onClick={runCode}>
-                    Run Code
-                </Button>
-
-            </div>
-            {isMobileView ? (
-                <Box className='editor-boxes'>
-                    {!showOutput && (
-                        <Editor
-                            className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
-                            height="90vh"
-                            width={isMobileView ? "100%" : "50%"}
-                            theme='vs-dark'
-                            language={language}
-                            defaultValue={CODE_SNIPPETS[language]}
-                            onMount={onMount}
-                            value={value}
-                            onChange={(value) => setValue(value)}
-                        />
-                    )}
-                    {showOutput && (
-                        <Box
-                            className='right' // Conditionally set the class name
-                            height="90vh"
-                            p={2}
-                            color={isError ? "red.400" : ""}
-                            border="1px solid"
-                            borderRadius={4}
-                            borderColor={isError ? "red.500" : "#333"}
-                            width={isMobileView ? "100%" : "50%"}
-                        >
-                            {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
-                        </Box>
-                    )}
+                </div>
+                {isMobileView ? (
+                    <Box className='editor-boxes'>
+                        {!showOutput && (
+                            <Editor
+                                className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
+                                height="90vh"
+                                width={isMobileView ? "100%" : "50%"}
+                                theme='vs-dark'
+                                language={language}
+                                defaultValue={CODE_SNIPPETS[language]}
+                                onMount={onMount}
+                                value={value}
+                                onChange={(value) => setValue(value)}
+                            />
+                        )}
+                        {showOutput && (
+                            <Box
+                                className='right' // Conditionally set the class name
+                                height="90vh"
+                                p={2}
+                                color={isError ? "red.400" : ""}
+                                border="1px solid"
+                                borderRadius={4}
+                                borderColor={isError ? "red.500" : "#333"}
+                                width={isMobileView ? "100%" : "50%"}
+                            >
+                                {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
+                            </Box>
+                        )}
+                    </Box>
+                ) : (
+                    <Box className='editor-boxes'>
+                        {!showOutput && (
+                            <Editor
+                                className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
+                                height="70vh"
+                                width={isMobileView ? "50%" : "100%"}
+                                theme='vs-dark'
+                                language={language}
+                                defaultValue={CODE_SNIPPETS[language]}
+                                onMount={onMount}
+                                value={value}
+                                onChange={(value) => setValue(value)}
+                            />
+                        )}
+                        {showOutput && (
+                            <Box
+                                className='right' // Conditionally set the class name
+                                height="70vh"
+                                width="100%"
+                                p={2}
+                                color={isError ? "red.400" : ""}
+                                border="1px solid"
+                                borderRadius={4}
+                                borderColor={isError ? "red.500" : "#333"}
+                                // width={isMobileView ? "100%" : "50%"}
+                            >
+                                {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
+                            </Box>
+                        )}
+                    </Box>
+                )}
+                <Box className='user-main-box'>
+                    <Box className='user-box'>
+                        <img src={User} className='user-img' />
+                        <img src={User} className='user-img' />
+                        <img src={User} className='user-img' />
+                        <img src={User} className='user-img' />
+                    </Box>
                 </Box>
-            ) : (
-                <Box className='editor-boxes'>
-                    {!showOutput && (
-                        <Editor
-                            className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
-                            height="70vh"
-                            width={isMobileView ? "50%" : "100%"}
-                            theme='vs-dark'
-                            language={language}
-                            defaultValue={CODE_SNIPPETS[language]}
-                            onMount={onMount}
-                            value={value}
-                            onChange={(value) => setValue(value)}
-                        />
-                    )}
-                    {showOutput && (
-                        <Box
-                            className='right' // Conditionally set the class name
-                            height="70vh"
-                            width="100%"
-                            p={2}
-                            color={isError ? "red.400" : ""}
-                            border="1px solid"
-                            borderRadius={4}
-                            borderColor={isError ? "red.500" : "#333"}
-                            // width={isMobileView ? "100%" : "50%"}
-                        >
-                            {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
-                        </Box>
-                    )}
-                </Box>
-            )}
-            <Box className='users' marginRight="22%">
-                <Box backgroundColor="gray"></Box>
             </Box>
         </Box>
     );
