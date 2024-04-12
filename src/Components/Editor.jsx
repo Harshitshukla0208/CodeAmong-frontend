@@ -8,7 +8,7 @@ import logo from '../assets/logo.svg';
 import './css/CodeEditor.css';
 import { executeCode } from '../api';
 import User from '../assets/user.png'
-import Chats from './Chats';
+import ChatFeature from './SocketConnection';
 
 const CodeEditor = () => {
     const editorRef = useRef();
@@ -155,7 +155,7 @@ const CodeEditor = () => {
             </Box>
 
             <Box className='chat-box' w="22%">
-                <Chats />
+                <ChatFeature />
             </Box>
         </Box>
     );
