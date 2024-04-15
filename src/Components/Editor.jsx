@@ -1,165 +1,166 @@
-import React, { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Box, Button, Text, useToast } from '@chakra-ui/react';
-import { Editor } from '@monaco-editor/react';
-import LanguageSelector from './LanguageSelector';
-import { CODE_SNIPPETS } from '../langsupport';
-import logo from '../assets/logo.svg';
-import './css/CodeEditor.css';
-import { executeCode } from '../api';
-import User from '../assets/user.png'
-import ChatFeature from './SocketConnection';
+import React, { useState, useEffect } from 'react'
+import AceEditor from 'react-ace';
+import { Toaster, toast } from 'react-hot-toast';
+import { useNavigate, useParams } from 'react-router-dom';
+import {generateColor} from '../utils/generateColor';
+import './Editor.css';
 
-const CodeEditor = () => {
-    const editorRef = useRef();
-    const toast = useToast();
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/mode-typescript";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-yaml";
+import "ace-builds/src-noconflict/mode-golang";
+import "ace-builds/src-noconflict/mode-c_cpp";
+import "ace-builds/src-noconflict/mode-html";
+import "ace-builds/src-noconflict/mode-css";
 
-    const [value, setValue] = useState("");
+import "ace-builds/src-noconflict/keybinding-emacs";
+import "ace-builds/src-noconflict/keybinding-vim";
+
+import "ace-builds/src-noconflict/theme-monokai";
+import "ace-builds/src-noconflict/ext-language_tools";
+import "ace-builds/src-noconflict/ext-searchbox";
+
+const Editor = ({socket}) => {
+
+    const navigate = useNavigate();
+    const {roomId} = useParams();
+    const [fetchedUsers, setFetchedUsers] = useState([]);
+    const [fetchedCode, setFetchedCode] = useState("");
     const [language, setLanguage] = useState("javascript");
-    const [output, setOutput] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isError, setIsError] = useState(false);
-    const [hasRun, setHasRun] = useState(false); // Track whether the code has been executed
-    const [showOutput, setShowOutput] = useState(false); // Track whether to show output
+    const [codeKeybinding, setCodeKeybinding] = useState(undefined);
 
-    const onMount = (editor) => {
-        editorRef.current = editor;
-        editor.focus();
-    };
+    const languagesAvailable = ["javascript", "java", "c_cpp", "python", "typescript", "golang", "yaml", "html"]
+    const codeKeybindingsAvailable = ["default", "emacs", "vim"]
 
-    const onSelect = (language) => {
-        setLanguage(language);
-        setValue(CODE_SNIPPETS[language]);
-    };
+    function onChange(newValue) {
+        setFetchedCode(newValue)
+        socket.emit("update code", { roomId, code: newValue })
+        socket.emit("syncing the code", { roomId: roomId })
+    }
 
-    const runCode = async () => {
-        const sourceCode = editorRef.current.getValue();
-        if (!sourceCode) return;
+    function handleLanguageChange(e) {
+        setLanguage(e.target.value)
+        socket.emit("update language", { roomId, languageUsed: e.target.value })
+        socket.emit("syncing the language", { roomId: roomId })
+    }
+
+    function handleCodeKeybindingChange(e) {
+        setCodeKeybinding(e.target.value === "default" ? undefined : e.target.value)
+    }
+
+    function handleLeave() {
+        socket.disconnect()
+        !socket.connected && navigate('/', { replace: true, state: {} })
+    }
+
+    function copyToClipboard(text) {
         try {
-            setIsLoading(true);
-            const { run: result } = await executeCode(language, sourceCode);
-            setOutput(result.output.split("\n"));
-            result.stderr ? setIsError(true) : setIsError(false);
-            setHasRun(true); // Update the state when code has been executed
-            setShowOutput(true); // Show output after running code
-        } catch (error) {
-            toast({
-                title: "An error occurred.",
-                description: error.message || "Unable to run code",
-                status: "error",
-                duration: 6000,
-            });
-        } finally {
-            setIsLoading(false);
+            navigator.clipboard.writeText(text);
+            toast.success('Room ID copied')
+        } catch (exp) {
+            console.error(exp)
         }
-    };
+    }
 
-    const toggleOutput = () => {
-        setShowOutput(!showOutput);
-    };
+    useEffect(() => {
+        socket.on("updating client list", ({ userslist }) => {
+            setFetchedUsers(userslist)
+        })
 
-    const isMobileView = window.innerWidth <= 500;
+        socket.on("on language change", ({ languageUsed }) => {
+        setLanguage(languageUsed)
+        })
+
+        socket.on("on code change", ({ code }) => {
+            setFetchedCode(code)
+        })
+
+        socket.on("new member joined", ({ username }) => {
+            toast(`${username} joined`)
+        })
+
+        socket.on("member left", ({ username }) => {
+            toast(`${username} left`)
+        })
+
+        const backButtonEventListner = window.addEventListener("popstate", function (e) {
+            const eventStateObj = e.state
+            if (!('usr' in eventStateObj) || !('username' in eventStateObj.usr)) {
+                socket.disconnect()
+            }
+        });
+
+        return () => {
+            window.removeEventListener("popstate", backButtonEventListner)
+        }
+    }, [socket])
 
     return (
-        <Box className='main-container' display="flex">
-            
-            <Box minH="100vh" bg="#000" color="gray.500" px={6} py={8} className='main-box' w="78%">
-                <div className='logo-container'>
-                    <Link to='/' className='logo'>
-                        <img src={logo} alt="Logo" className="logo-img" />
-                        <h1 className="logo-text">CodeAmong</h1>
-                    </Link>
+        <div className="room">
+            <div className="roomSidebar">
+                <div className="roomSidebarUsersWrapper">
+                <div className="languageFieldWrapper">
+                    <select className="languageField" name="language" id="language" value={language} onChange={handleLanguageChange}>
+                    {languagesAvailable.map(eachLanguage => (
+                        <option key={eachLanguage} value={eachLanguage}>{eachLanguage}</option>
+                    ))}
+                    </select>
                 </div>
-                <div className='buttons'>
-                    <LanguageSelector language={language} onSelect={onSelect} />
-
-                        <Button className='return-btn' onClick={toggleOutput} colorScheme="blue" style={{ fontSize: '13px',marginLeft: '5px' }}>
-                            Return
-                        </Button>
-
-                    <Button className='runcode-btn' variant='outline' colorScheme='green' isLoading={isLoading} onClick={runCode}>
-                        Run Code
-                    </Button>
-
+        
+                <div className="languageFieldWrapper">
+                    <select className="languageField" name="codeKeybinding" id="codeKeybinding" value={codeKeybinding} onChange={handleCodeKeybindingChange}>
+                    {codeKeybindingsAvailable.map(eachKeybinding => (
+                        <option key={eachKeybinding} value={eachKeybinding}>{eachKeybinding}</option>
+                    ))}
+                    </select>
                 </div>
-                {isMobileView ? (
-                    <Box className='editor-boxes'>
-                        {!showOutput && (
-                            <Editor
-                                className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
-                                height="90vh"
-                                width={isMobileView ? "100%" : "50%"}
-                                theme='vs-dark'
-                                language={language}
-                                defaultValue={CODE_SNIPPETS[language]}
-                                onMount={onMount}
-                                value={value}
-                                onChange={(value) => setValue(value)}
-                            />
-                        )}
-                        {showOutput && (
-                            <Box
-                                className='right' // Conditionally set the class name
-                                height="90vh"
-                                p={2}
-                                color={isError ? "red.400" : ""}
-                                border="1px solid"
-                                borderRadius={4}
-                                borderColor={isError ? "red.500" : "#333"}
-                                width={isMobileView ? "100%" : "50%"}
-                            >
-                                {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
-                            </Box>
-                        )}
-                    </Box>
-                ) : (
-                    <Box className='editor-boxes'>
-                        {!showOutput && (
-                            <Editor
-                                className={hasRun ? 'left' : 'left-side'} // Conditionally set the class name
-                                height="70vh"
-                                width={isMobileView ? "50%" : "100%"}
-                                theme='vs-dark'
-                                language={language}
-                                defaultValue={CODE_SNIPPETS[language]}
-                                onMount={onMount}
-                                value={value}
-                                onChange={(value) => setValue(value)}
-                            />
-                        )}
-                        {showOutput && (
-                            <Box
-                                className='right' // Conditionally set the class name
-                                height="70vh"
-                                width="100%"
-                                p={2}
-                                color={isError ? "red.400" : ""}
-                                border="1px solid"
-                                borderRadius={4}
-                                borderColor={isError ? "red.500" : "#333"}
-                                // width={isMobileView ? "100%" : "50%"}
-                            >
-                                {output ? output.map((line, i) => <Text key={i}>{line}</Text>) : 'Click "Run Code" to see the output here'}
-                            </Box>
-                        )}
-                    </Box>
-                )}
-                <Box className='user-main-box'>
-                    <Box className='user-box'>
-                        <img src={User} className='user-img' />
-                        <img src={User} className='user-img' />
-                        <img src={User} className='user-img' />
-                        <img src={User} className='user-img' />
-                    </Box>
-                </Box>
-            </Box>
-
-            <Box className='chat-box' w="22%">
-                <ChatFeature />
-            </Box>
-        </Box>
-    );
+        
+                <p>Connected Users:</p>
+                <div className="roomSidebarUsers">
+                    {fetchedUsers.map((each) => (
+                    <div key={each} className="roomSidebarUsersEach">
+                        <div className="roomSidebarUsersEachAvatar" style={{ backgroundColor: `${generateColor(each)}` }}>{each.slice(0, 2).toUpperCase()}</div>
+                        <div className="roomSidebarUsersEachName">{each}</div>
+                    </div>
+                    ))}
+                </div>
+                </div>
+        
+                <button className="roomSidebarCopyBtn" onClick={() => { copyToClipboard(roomId) }}>Copy Room id</button>
+                <button className="roomSidebarBtn" onClick={() => {
+                handleLeave()
+                }}>Leave</button>
+            </div>
     
-};
+            <AceEditor
+                placeholder="Write your code here."
+                className="roomCodeEditor"
+                mode={language}
+                keyboardHandler={codeKeybinding}
+                theme="monokai"
+                name="collabEditor"
+                width="auto"
+                height="auto"
+                value={fetchedCode}
+                onChange={onChange}
+                fontSize={15}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={true}
+                enableLiveAutocompletion={true}
+                enableBasicAutocompletion={false}
+                enableSnippets={false}
+                wrapEnabled={true}
+                tabSize={2}
+                editorProps={{
+                    $blockScrolling: true
+                }}
+            />
+            <Toaster />
+        </div>
+    )
+}
 
-export default CodeEditor;
+export default Editor
