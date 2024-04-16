@@ -8,7 +8,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path = '/' element = {<Home />} />
-        <Route path = '/room/:roomId' element = {<SocketWrapper><Editor /></SocketWrapper>} />
+        <Route path = '/room/:username/:roomId' element = {<SocketWrapper><Editor /></SocketWrapper>} />
       </Routes>
     </BrowserRouter>
   )

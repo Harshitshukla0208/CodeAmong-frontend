@@ -20,7 +20,7 @@ const Home = () => {
             toast.error("Incorrect room ID");
             return
         }
-        username && navigate(`/room/${roomId}`, {state: {username}})
+        username && navigate(`/room/${username}/${roomId}`, {state: {username}})
     }
 
     function createRoomId(e){

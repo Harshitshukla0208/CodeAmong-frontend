@@ -5,6 +5,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { generateColor } from '../utils/generateColor';
 import logo from '../assets/logo.svg'
 import './Editor.css';
+import ChatFeature from './SocketConnections'
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-typescript";
@@ -159,6 +160,7 @@ const Editor = ({ socket }) => {
                 />
             </div>
             <div className="right">
+                <ChatFeature />
                 <div className="room-sidebar">
                     <button className="room-sidebar-copy-btn" onClick={() => { copyToClipboard(roomId) }}>Copy Room id</button>
                     <button className="room-sidebar-btn" onClick={() => { handleLeave() }}>Leave</button>
