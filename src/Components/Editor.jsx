@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import AceEditor from 'react-ace';
 import { Toaster, toast } from 'react-hot-toast';
-import { useNavigate, useParams } from 'react-router-dom';
-import {generateColor} from '../utils/generateColor';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { generateColor } from '../utils/generateColor';
+import logo from '../assets/logo.svg'
 import './Editor.css';
 
 import "ace-builds/src-noconflict/mode-javascript";
@@ -22,145 +23,150 @@ import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/ext-searchbox";
 
-const Editor = ({socket}) => {
-
+const Editor = ({ socket }) => {
     const navigate = useNavigate();
-    const {roomId} = useParams();
+    const { roomId } = useParams();
     const [fetchedUsers, setFetchedUsers] = useState([]);
     const [fetchedCode, setFetchedCode] = useState("");
     const [language, setLanguage] = useState("javascript");
     const [codeKeybinding, setCodeKeybinding] = useState(undefined);
 
-    const languagesAvailable = ["javascript", "java", "c_cpp", "python", "typescript", "golang", "yaml", "html"]
-    const codeKeybindingsAvailable = ["default", "emacs", "vim"]
+    const languagesAvailable = ["javascript", "java", "c_cpp", "python", "typescript", "golang", "yaml", "html"];
+    const codeKeybindingsAvailable = ["default", "emacs", "vim"];
 
     function onChange(newValue) {
-        setFetchedCode(newValue)
-        socket.emit("update code", { roomId, code: newValue })
-        socket.emit("syncing the code", { roomId: roomId })
+        setFetchedCode(newValue);
+        socket.emit("update code", { roomId, code: newValue });
+        socket.emit("syncing the code", { roomId: roomId });
     }
 
     function handleLanguageChange(e) {
-        setLanguage(e.target.value)
-        socket.emit("update language", { roomId, languageUsed: e.target.value })
-        socket.emit("syncing the language", { roomId: roomId })
+        setLanguage(e.target.value);
+        socket.emit("update language", { roomId, languageUsed: e.target.value });
+        socket.emit("syncing the language", { roomId: roomId });
     }
 
     function handleCodeKeybindingChange(e) {
-        setCodeKeybinding(e.target.value === "default" ? undefined : e.target.value)
+        setCodeKeybinding(e.target.value === "default" ? undefined : e.target.value);
     }
 
     function handleLeave() {
-        socket.disconnect()
-        !socket.connected && navigate('/', { replace: true, state: {} })
+        socket.disconnect();
+        !socket.connected && navigate('/', { replace: true, state: {} });
     }
 
     function copyToClipboard(text) {
         try {
             navigator.clipboard.writeText(text);
-            toast.success('Room ID copied')
+            toast.success('Room ID copied');
         } catch (exp) {
-            console.error(exp)
+            console.error(exp);
         }
     }
 
     useEffect(() => {
         socket.on("updating client list", ({ userslist }) => {
-            setFetchedUsers(userslist)
-        })
+            setFetchedUsers(userslist);
+        });
 
         socket.on("on language change", ({ languageUsed }) => {
-        setLanguage(languageUsed)
-        })
+            setLanguage(languageUsed);
+        });
 
         socket.on("on code change", ({ code }) => {
-            setFetchedCode(code)
-        })
+            setFetchedCode(code);
+        });
 
         socket.on("new member joined", ({ username }) => {
-            toast(`${username} joined`)
-        })
+            toast(`${username} joined`);
+        });
 
         socket.on("member left", ({ username }) => {
-            toast(`${username} left`)
-        })
+            toast(`${username} left`);
+        });
 
         const backButtonEventListner = window.addEventListener("popstate", function (e) {
-            const eventStateObj = e.state
+            const eventStateObj = e.state;
             if (!('usr' in eventStateObj) || !('username' in eventStateObj.usr)) {
-                socket.disconnect()
+                socket.disconnect();
             }
         });
 
         return () => {
-            window.removeEventListener("popstate", backButtonEventListner)
-        }
-    }, [socket])
+            window.removeEventListener("popstate", backButtonEventListner);
+        };
+    }, [socket]);
 
     return (
         <div className="room">
-            <div className="roomSidebar">
-                <div className="roomSidebarUsersWrapper">
-                <div className="languageFieldWrapper">
-                    <select className="languageField" name="language" id="language" value={language} onChange={handleLanguageChange}>
-                    {languagesAvailable.map(eachLanguage => (
-                        <option key={eachLanguage} value={eachLanguage}>{eachLanguage}</option>
-                    ))}
-                    </select>
-                </div>
-        
-                <div className="languageFieldWrapper">
-                    <select className="languageField" name="codeKeybinding" id="codeKeybinding" value={codeKeybinding} onChange={handleCodeKeybindingChange}>
-                    {codeKeybindingsAvailable.map(eachKeybinding => (
-                        <option key={eachKeybinding} value={eachKeybinding}>{eachKeybinding}</option>
-                    ))}
-                    </select>
-                </div>
-        
-                <p>Connected Users:</p>
-                <div className="roomSidebarUsers">
-                    {fetchedUsers.map((each) => (
-                    <div key={each} className="roomSidebarUsersEach">
-                        <div className="roomSidebarUsersEachAvatar" style={{ backgroundColor: `${generateColor(each)}` }}>{each.slice(0, 2).toUpperCase()}</div>
-                        <div className="roomSidebarUsersEachName">{each}</div>
-                    </div>
-                    ))}
-                </div>
-                </div>
-        
-                <button className="roomSidebarCopyBtn" onClick={() => { copyToClipboard(roomId) }}>Copy Room id</button>
-                <button className="roomSidebarBtn" onClick={() => {
-                handleLeave()
-                }}>Leave</button>
+            <div className='logo-container'>
+                <Link to='/' className='logo'>
+                    <img src={logo} alt="Logo" className="logo-img" />
+                    <h1 className="logo-text">CodeAmong</h1>
+                </Link>
             </div>
-    
-            <AceEditor
-                placeholder="Write your code here."
-                className="roomCodeEditor"
-                mode={language}
-                keyboardHandler={codeKeybinding}
-                theme="monokai"
-                name="collabEditor"
-                width="auto"
-                height="auto"
-                value={fetchedCode}
-                onChange={onChange}
-                fontSize={15}
-                showPrintMargin={true}
-                showGutter={true}
-                highlightActiveLine={true}
-                enableLiveAutocompletion={true}
-                enableBasicAutocompletion={false}
-                enableSnippets={false}
-                wrapEnabled={true}
-                tabSize={2}
-                editorProps={{
-                    $blockScrolling: true
-                }}
-            />
-            <Toaster />
+            <div className="left">
+                <div className="upper-section">
+                    <div className="language-field-wrapper-a">
+                        <select className="language-field" name="language" id="language" value={language} onChange={handleLanguageChange}>
+                            {languagesAvailable.map(eachLanguage => (
+                                <option key={eachLanguage} value={eachLanguage}>{eachLanguage}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="language-field-wrapper-b">
+                        <select className="language-field" name="codeKeybinding" id="codeKeybinding" value={codeKeybinding} onChange={handleCodeKeybindingChange}>
+                                {codeKeybindingsAvailable.map(eachKeybinding => (
+                                <option key={eachKeybinding} value={eachKeybinding}>{eachKeybinding}</option>
+                        ))}
+                        </select>
+                    </div>
+                    <div className="room-sidebar-users-wrapper">
+                        <p>Connected Users:</p>
+                        <div className="room-sidebar-users">
+                            {fetchedUsers.map((each) => (
+                                <div key={each} className="room-sidebar-users-each">
+                                    <div className="room-sidebar-users-each-avatar" style={{ backgroundColor: `${generateColor(each)}` }}>{each.slice(0, 2).toUpperCase()}</div>
+                                    <div className="room-sidebar-users-each-name">{each}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <AceEditor
+                    placeholder="Write your code here."
+                    className="room-code-editor"
+                    mode={language}
+                    keyboardHandler={codeKeybinding}
+                    theme="monokai"
+                    name="collabEditor"
+                    width="auto"
+                    height="auto"
+                    value={fetchedCode}
+                    onChange={onChange}
+                    fontSize={17}
+                    showPrintMargin={false}
+                    showGutter={false}
+                    highlightActiveLine={true}
+                    enableLiveAutocompletion={true}
+                    enableBasicAutocompletion={false}
+                    enableSnippets={false}
+                    wrapEnabled={true}
+                    tabSize={2}
+                    editorProps={{
+                        $blockScrolling: true
+                    }}
+                />
+            </div>
+            <div className="right">
+                <div className="room-sidebar">
+                    <button className="room-sidebar-copy-btn" onClick={() => { copyToClipboard(roomId) }}>Copy Room id</button>
+                    <button className="room-sidebar-btn" onClick={() => { handleLeave() }}>Leave</button>
+                </div>
+                <Toaster />
+            </div>
         </div>
-    )
+    );
 }
 
-export default Editor
+export default Editor;
