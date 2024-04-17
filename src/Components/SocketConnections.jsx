@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import Chats from './Chats';
 import './SocketConnection.css';
 
-const socket = io.connect("http://localhost:3002");
+const socket = io.connect("https://codeamong-chats.onrender.com");
 
 const Connections = () => {
     const { roomId } = useParams();
