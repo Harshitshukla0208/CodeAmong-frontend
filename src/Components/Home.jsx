@@ -1,33 +1,46 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {v4 as uuidv4, validate} from 'uuid';
-import {Toaster, toast} from 'react-hot-toast';
+import { v4 as uuidv4, validate } from 'uuid';
+import { Toaster, toast } from 'react-hot-toast';
 import logo from '../assets/logo.svg'
 import { Flex } from '@chakra-ui/react'
 import './Home.css'
-import githubLogo from '../assets/github-logo.png'; 
-import linkedinLogo from '../assets/linkedin-logo.png'; 
+import githubLogo from '../assets/github-logo.png';
+import linkedinLogo from '../assets/linkedin-logo.png';
 
 const Home = () => {
 
     const navigate = useNavigate();
     const [roomId, setRoomId] = useState("")
     const [username, setUsername] = useState("")
+    const [loading, setLoading] = useState(false)
 
-    function handleRoomSubmit(e){
+    const handleRoomChange = (e) => {
+        const value = e.target.value;
+        setRoomId(value);
+        if (!validate(value)) {
+            toast.error("Incorrect room ID");
+        }
+    }
+
+    const handleRoomSubmit = async(e) => {
+        setLoading(true)
         e.preventDefault()
-        if(!validate(roomId)){
+        if (!validate(roomId)) {
             toast.error("Incorrect room ID");
             return
         }
-        username && navigate(`/room/${username}/${roomId}`, {state: {username}})
+        const rest=await fetch('https://codeamong-backend.onrender.com/test')
+
+        setLoading(true);
+        username && navigate(`/room/${username}/${roomId}`, { state: { username } })
     }
 
-    function createRoomId(e){
+    const createRoomId = (e) => {
         try {
             setRoomId(uuidv4())
         } catch (error) {
-            console.log("error occured in generation of room id")
+            console.log("error occurred in generation of room id")
         }
     }
 
@@ -38,14 +51,14 @@ const Home = () => {
                 <h1>CodeAmong</h1>
             </div>
             <form className='joinBox' onSubmit={handleRoomSubmit}>
-                <p>Paste you invitation code down below</p>
+                <p>Paste your invitation code down below</p>
                 <div className="joinBoxInputWrapper">
-                    <input 
+                    <input
                         className='joinBoxInput'
                         type='text'
                         placeholder='Enter room ID'
                         required
-                        onChange={(e) => {setRoomId(e.target.value)}}
+                        onChange={handleRoomChange}
                         value={roomId}
                     />
                 </div>
@@ -59,7 +72,9 @@ const Home = () => {
                         onChange={e => { setUsername(e.target.value) }}
                     />
                 </div>
-                <button className='joinBoxBtn'>Join</button>
+                <button className='joinBoxBtn' >
+                    {loading ? <span className="loader"></span> : <span>Join</span>}
+                </button>
                 <p>Don't have an invite code?</p>
                 <p className='createown'> Create your <span
                     style={{ textDecoration: "underline", cursor: "pointer" }}
@@ -80,4 +95,4 @@ const Home = () => {
     )
 }
 
-export default Home
+export default Home;
