@@ -2,6 +2,10 @@
 
 CodeAlong is a collaborative code editor built with Vite, ReactJS, and Socket.io-client, allowing multiple users to code together in real-time.
 
+
+![image](https://github.com/Harshitshukla0208/CodeAmong-frontend/assets/120409631/46b41847-8aca-4de0-8954-32d309c43a29)
+
+
 ## Features
 
 - **Real-time Collaboration**: CodeAlong enables multiple users to code together in real-time, facilitating seamless collaboration.
