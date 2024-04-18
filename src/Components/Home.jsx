@@ -83,7 +83,7 @@ const Home = () => {
             </form>
             <p className='footer'>Created by: Harshit Shukla</p>
             <Flex mt={3}>
-                <a href="https://github.com/Harshitshukla0208/Codelogs" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/Harshitshukla0208/CodeAmong-frontend" target="_blank" rel="noopener noreferrer">
                     <img src={githubLogo} alt="GitHub Logo" width="30" height="30" style={{ marginRight: '10px' }} />
                 </a>
                 <a href="https://www.linkedin.com/in/harshit-shukla-9a5950239/" target="_blank" rel="noopener noreferrer">
