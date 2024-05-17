@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import Chats from './Chats';
 import './SocketConnection.css';
+import VideoLobby from './VideoLobby';
 
 const socket = io.connect("https://codeamong-chats.onrender.com");
 
@@ -32,6 +33,7 @@ const Connections = () => {
     
     return (
         <div className='App'>
+            <VideoLobby />
             <Chats socket={socket} user={user} room={room} />
         </div>
     );
