@@ -5,8 +5,7 @@ import Chats from './Chats';
 import './SocketConnection.css';
 import VideoLobby from './VideoLobby';
 
-// const socket = io.connect("https://codeamong-chats.onrender.com");
-const socket = io.connect("https://code-among-chats.vercel.app/");
+const socket = io.connect("https://codeamong-chats.onrender.com");
 
 const Connections = () => {
     const { roomId } = useParams();

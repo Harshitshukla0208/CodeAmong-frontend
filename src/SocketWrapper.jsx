@@ -19,8 +19,7 @@ function addPropsToChildren(children, props){
 }
 
 export default function SocketWrapper({children}){
-    // const socket = io.connect("https://codeamong-backend.onrender.com");
-    const socket = io.connect("https://code-among-backend.vercel.app/");
+    const socket = io.connect("https://codeamong-backend.onrender.com");
 
     const location = useLocation();
     const navigate = useNavigate();
